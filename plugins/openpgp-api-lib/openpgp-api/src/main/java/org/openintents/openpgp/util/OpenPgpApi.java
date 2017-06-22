@@ -140,6 +140,8 @@ public class OpenPgpApi {
      */
     public static final String ACTION_SIGN_AND_ENCRYPT = "org.openintents.openpgp.action.SIGN_AND_ENCRYPT";
 
+    public static final String ACTION_QUERY_AUTOCRYPT_STATUS = "org.openintents.openpgp.action.QUERY_AUTOCRYPT_STATUS";
+
     /**
      * Decrypts and verifies given input stream. This methods handles encrypted-only, signed-and-encrypted,
      * and also signed-only input.
@@ -249,21 +251,18 @@ public class OpenPgpApi {
     public static final String EXTRA_KEY_IDS_SELECTED = "key_ids_selected";
     public static final String EXTRA_SIGN_KEY_ID = "sign_key_id";
 
-    public static final String RESULT_AUTOCRYPT_STATUS = "autocrypt_status";
-    public static final int AUTOCRYPT_STATUS_UNAVAILABLE = 0;
-    public static final int AUTOCRYPT_STATUS_DISCOURAGE = 1;
-    public static final int AUTOCRYPT_STATUS_AVAILABLE = 2;
-    public static final int AUTOCRYPT_STATUS_MUTUAL = 3;
-
-    // TODO remove again
-    public static final String EXTRA_DRY_RUN = "dry_run";
-    public static final String RESULT_KEYS_CONFIRMED = "keys_confirmed";
-
     // optional extras:
     public static final String EXTRA_PASSPHRASE = "passphrase";
     public static final String EXTRA_ORIGINAL_FILENAME = "original_filename";
     public static final String EXTRA_ENABLE_COMPRESSION = "enable_compression";
     public static final String EXTRA_OPPORTUNISTIC_ENCRYPTION = "opportunistic";
+
+    public static final String RESULT_KEYS_CONFIRMED = "keys_confirmed";
+    public static final String RESULT_AUTOCRYPT_STATUS = "autocrypt_status";
+    public static final int AUTOCRYPT_STATUS_UNAVAILABLE = 0;
+    public static final int AUTOCRYPT_STATUS_DISCOURAGE = 1;
+    public static final int AUTOCRYPT_STATUS_AVAILABLE = 2;
+    public static final int AUTOCRYPT_STATUS_RECOMMEND = 3;
 
     // GET_SIGN_KEY_ID
     public static final String EXTRA_USER_ID = "user_id";
