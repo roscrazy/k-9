@@ -262,7 +262,7 @@ public class OpenPgpApi {
     public static final int AUTOCRYPT_STATUS_UNAVAILABLE = 0;
     public static final int AUTOCRYPT_STATUS_DISCOURAGE = 1;
     public static final int AUTOCRYPT_STATUS_AVAILABLE = 2;
-    public static final int AUTOCRYPT_STATUS_RECOMMEND = 3;
+    public static final int AUTOCRYPT_STATUS_MUTUAL = 3;
 
     // GET_SIGN_KEY_ID
     public static final String EXTRA_USER_ID = "user_id";
