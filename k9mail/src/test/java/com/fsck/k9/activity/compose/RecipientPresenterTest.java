@@ -200,7 +200,7 @@ public class RecipientPresenterTest {
         Robolectric.getBackgroundThreadScheduler().runOneTask();
         ComposeCryptoStatus status = recipientPresenter.getCurrentCachedCryptoStatus();
 
-        assertEquals(CryptoStatusDisplayType.CHOICE_ENABLED_UNAVAILABLE, status.getCryptoStatusDisplayType());
+        assertEquals(CryptoStatusDisplayType.CHOICE_ENABLED_UNTRUSTED, status.getCryptoStatusDisplayType());
         assertTrue(status.isProviderStateOk());
         assertTrue(status.shouldUsePgpMessageBuilder());
     }
@@ -225,11 +225,11 @@ public class RecipientPresenterTest {
     public void getCurrentCryptoStatus_withModeDisabled() throws Exception {
         setupCryptoProvider(noUserIdsResultIntent);
 
-        recipientPresenter.onCryptoModeChanged(CryptoMode.DISABLE);
+        recipientPresenter.onCryptoModeChanged(CryptoMode.CHOICE_DISABLED);
         Robolectric.getBackgroundThreadScheduler().runOneTask();
         ComposeCryptoStatus status = recipientPresenter.getCurrentCachedCryptoStatus();
 
-        assertEquals(CryptoStatusDisplayType.DISABLED, status.getCryptoStatusDisplayType());
+        assertEquals(CryptoStatusDisplayType.CHOICE_DISABLED_UNTRUSTED, status.getCryptoStatusDisplayType());
         assertTrue(status.isProviderStateOk());
         assertFalse(status.shouldUsePgpMessageBuilder());
     }
@@ -242,7 +242,7 @@ public class RecipientPresenterTest {
         Robolectric.getBackgroundThreadScheduler().runOneTask();
         ComposeCryptoStatus status = recipientPresenter.getCurrentCachedCryptoStatus();
 
-        assertEquals(CryptoStatusDisplayType.CHOICE_ENABLED_EMPTY, status.getCryptoStatusDisplayType());
+        assertEquals(CryptoStatusDisplayType.CHOICE_ENABLED_UNTRUSTED, status.getCryptoStatusDisplayType());
         assertTrue(status.isProviderStateOk());
         assertTrue(status.shouldUsePgpMessageBuilder());
     }
