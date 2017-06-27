@@ -426,6 +426,8 @@ public class RecipientPresenter implements PermissionPingCallback {
             throw new IllegalStateException("must have cached crypto status to redraw it!");
         }
 
+        recipientMvpView.setRecipientTokensShowCryptoEnabled(cachedCryptoStatus.isEncryptionEnabled());
+
         CryptoStatusDisplayType cryptoStatusDisplayType = cachedCryptoStatus.getCryptoStatusDisplayType();
         if (cryptoStatusDisplayType == CryptoStatusDisplayType.ERROR) {
             recipientMvpView.showErrorOpenPgpRetrieveStatus();
