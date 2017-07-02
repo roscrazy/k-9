@@ -1236,4 +1236,7 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="error_recipient_crypto_retrieve">Error retrieving recipient status from OpenPGP provider!</string>
     <string name="openpgp_enabled_error_title">Encryption not possible</string>
     <string name="openpgp_enabled_error_msg">Some of the selected recipients don\'t support this feature!</string>
+    <string name="openpgp_enabled_error_gotit">Got it</string>
+    <string name="openpgp_enabled_error_back">Back</string>
+    <string name="openpgp_enabled_error_disable">Disable Encryption</string>
 </resources>
