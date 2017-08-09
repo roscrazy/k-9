@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import android.text.TextUtils;
 
@@ -62,7 +61,6 @@ public class ImapFolder extends Folder<ImapMessage> {
     private long highestModSeq = INVALID_HIGHEST_MOD_SEQ;
     protected volatile ImapConnection connection;
     protected ImapStore store = null;
-    protected Map<Long, String> msgSeqUidMap = new ConcurrentHashMap<Long, String>();
     private final FolderNameCodec folderNameCodec;
     private final String name;
     private int mode;
@@ -155,8 +153,6 @@ public class ImapFolder extends Folder<ImapMessage> {
         }
 
         try {
-            msgSeqUidMap.clear();
-
             String encodedFolderName = folderNameCodec.encode(getPrefixedName());
             String escapedFolderName = ImapUtility.encodeString(encodedFolderName);
             SelectOrExamineCommand command;
@@ -731,17 +727,6 @@ public class ImapFolder extends Folder<ImapMessage> {
             if (response.getTag() == null && ImapResponseParser.equalsIgnoreCase(response.get(1), "FETCH")) {
                 ImapList fetchList = (ImapList) response.getKeyedValue("FETCH");
                 String uid = fetchList.getKeyedString("UID");
-                long msgSeq = response.getLong(0);
-                if (uid != null) {
-                    try {
-                        msgSeqUidMap.put(msgSeq, uid);
-                        if (K9MailLib.isDebug()) {
-                            Timber.v("Stored uid '%s' for msgSeq %d into map", uid, msgSeq);
-                        }
-                    } catch (Exception e) {
-                        Timber.e("Unable to store uid '%s' for msgSeq %d", uid, msgSeq);
-                    }
-                }
 
                 Message message = messageMap.get(uid);
                 if (message == null) {
