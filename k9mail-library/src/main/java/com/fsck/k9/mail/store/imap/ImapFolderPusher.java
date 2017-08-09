@@ -91,24 +91,6 @@ class ImapFolderPusher extends ImapFolder {
         }
     }
 
-    @Override
-    protected void handleUntaggedResponse(ImapResponse response) {
-        if (response.getTag() == null && response.size() > 1) {
-            if (isUntaggedResponseSupported(response)) {
-
-                if (K9MailLib.isDebug()) {
-                    Timber.d("Storing response %s for later processing", response);
-                }
-
-                synchronized (storedUntaggedResponses) {
-                    storedUntaggedResponses.add(response);
-                }
-            }
-
-            handlePossibleUidNext(response);
-        }
-    }
-
     private boolean isUntaggedResponseSupported(ImapResponse response) {
         return (equalsIgnoreCase(response.get(1), "EXISTS") || equalsIgnoreCase(response.get(1), "EXPUNGE") ||
                 equalsIgnoreCase(response.get(1), "FETCH") || equalsIgnoreCase(response.get(0), "VANISHED"));
@@ -152,7 +134,7 @@ class ImapFolderPusher extends ImapFolder {
                     boolean pushPollOnConnect = store.getStoreConfig().isPushPollOnConnect();
                     if (pushPollOnConnect && (openedNewConnection || needsPoll)) {
                         needsPoll = false;
-                        syncFolderOnConnect();
+                        pushReceiver.syncFolder(getName());
                     }
 
                     if (stop) {
@@ -166,8 +148,6 @@ class ImapFolderPusher extends ImapFolder {
                     if (newUidNext > startUid) {
                         pushReceiver.syncFolder(getName());
                     } else {
-                        processStoredUntaggedResponses();
-
                         if (K9MailLib.isDebug()) {
                             Timber.i("About to IDLE for %s", getLogId());
                         }
@@ -294,10 +274,9 @@ class ImapFolderPusher extends ImapFolder {
         private void sendIdle(ImapConnection conn) throws MessagingException, IOException {
             String tag = conn.sendCommand(Commands.IDLE, false);
 
-            List<ImapResponse> responses;
             try {
                 try {
-                    responses = conn.readStatusResponse(tag, Commands.IDLE, this);
+                    conn.readStatusResponse(tag, Commands.IDLE, this);
                 } finally {
                     idleStopper.stopAcceptingDoneContinuation();
                 }
@@ -305,8 +284,6 @@ class ImapFolderPusher extends ImapFolder {
                 conn.close();
                 throw e;
             }
-
-            handleUntaggedResponses(responses);
         }
 
         private void returnFromIdle() {
@@ -373,6 +350,12 @@ class ImapFolderPusher extends ImapFolder {
                             if (K9MailLib.isDebug()) {
                                 Timber.d("Got useful async untagged response: %s for %s", response, getLogId());
                             }
+
+                            synchronized (storedUntaggedResponses) {
+                                storedUntaggedResponses.add(response);
+                            }
+
+                            processStoredUntaggedResponses();
                         }
                     } else if (response.isContinuationRequested()) {
                         if (K9MailLib.isDebug()) {
@@ -392,7 +375,7 @@ class ImapFolderPusher extends ImapFolder {
             }
         }
 
-        private void processStoredUntaggedResponses() throws MessagingException {
+        private void processStoredUntaggedResponses() {
             while (true) {
                 List<ImapResponse> untaggedResponses = getAndClearStoredUntaggedResponses();
                 if (untaggedResponses.isEmpty()) {
@@ -419,11 +402,6 @@ class ImapFolderPusher extends ImapFolder {
 
                 return untaggedResponses;
             }
-        }
-
-        private void syncFolderOnConnect() throws MessagingException {
-            processStoredUntaggedResponses();
-            pushReceiver.syncFolder(getName());
         }
 
         private long getOldUidNext() {
