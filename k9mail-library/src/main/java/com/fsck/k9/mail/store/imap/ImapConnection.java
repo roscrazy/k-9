@@ -818,6 +818,10 @@ public class ImapConnection {
         }
     }
 
+    boolean areMoreResponsesAvailable() throws IOException {
+        return inputStream.available() > 1;
+    }
+
     public ImapResponse readResponse() throws IOException, MessagingException {
         return readResponse(null);
     }

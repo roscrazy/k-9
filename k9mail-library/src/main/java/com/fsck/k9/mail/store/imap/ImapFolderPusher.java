@@ -335,7 +335,7 @@ class ImapFolderPusher {
         }
 
         @Override
-        public void handleAsyncUntaggedResponse(ImapResponse response) {
+        public void handleAsyncUntaggedResponse(ImapResponse response) throws IOException {
             if (K9MailLib.isDebug()) {
                 Timber.v("Got async response: %s", response);
             }
@@ -358,9 +358,10 @@ class ImapFolderPusher {
 
                             synchronized (storedUntaggedResponses) {
                                 storedUntaggedResponses.add(response);
+                                if (!folder.getConnection().areMoreResponsesAvailable()) {
+                                    processStoredUntaggedResponses();
+                                }
                             }
-
-                            processStoredUntaggedResponses();
                         }
                     } else if (response.isContinuationRequested()) {
                         if (K9MailLib.isDebug()) {
