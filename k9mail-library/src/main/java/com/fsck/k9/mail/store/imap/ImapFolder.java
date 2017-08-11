@@ -115,6 +115,12 @@ public class ImapFolder extends Folder<ImapMessage> {
         return handleUntaggedResponses(connection.executeSimpleCommand(command));
     }
 
+    public List<ImapResponse> executeSimpleCommand(String command, UntaggedHandler untaggedHandler)
+            throws MessagingException, IOException {
+        String tag = connection.sendCommand(command, false);
+        return connection.readStatusResponse(tag, command, untaggedHandler);
+    }
+
     @Override
     public void open(int mode) throws MessagingException {
         internalOpen(mode, INVALID_UID_VALIDITY, INVALID_HIGHEST_MOD_SEQ);
@@ -473,7 +479,11 @@ public class ImapFolder extends Folder<ImapMessage> {
         return getRemoteMessageCount(requiredFlags, forbiddenFlags);
     }
 
-    protected long getHighestUid() throws MessagingException {
+    long getUidNext() {
+        return uidNext;
+    }
+
+    long getHighestUid() throws MessagingException {
         try {
 
             UidSearchCommand searchCommand = new UidSearchCommand.Builder()
@@ -1355,6 +1365,10 @@ public class ImapFolder extends Folder<ImapMessage> {
 
     ImapStore getStore() {
         return store;
+    }
+
+    ImapConnection getConnection() {
+        return connection;
     }
 
     protected String getLogId() {

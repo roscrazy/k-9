@@ -19,16 +19,18 @@ import com.fsck.k9.mail.power.TracingPowerManager.TracingWakeLock;
 import com.fsck.k9.mail.store.RemoteStore;
 import timber.log.Timber;
 
+import static com.fsck.k9.mail.Folder.OPEN_MODE_RO;
 import static com.fsck.k9.mail.K9MailLib.PUSH_WAKE_LOCK_TIMEOUT;
 import static com.fsck.k9.mail.store.imap.ImapResponseParser.equalsIgnoreCase;
 
 
-class ImapFolderPusher extends ImapFolder {
+class ImapFolderPusher {
     private static final int IDLE_READ_TIMEOUT_INCREMENT = 5 * 60 * 1000;
     private static final int IDLE_FAILURE_COUNT_LIMIT = 10;
     private static final int MAX_DELAY_TIME = 5 * 60 * 1000; // 5 minutes
     private static final int NORMAL_DELAY_TIME = 5000;
 
+    private final ImapFolder folder;
     private final PushReceiver pushReceiver;
     private final Object threadLock = new Object();
     private final IdleStopper idleStopper = new IdleStopper();
@@ -38,13 +40,13 @@ class ImapFolderPusher extends ImapFolder {
     private volatile boolean stop = false;
     private volatile boolean idling = false;
 
-    ImapFolderPusher(ImapStore store, String name, PushReceiver pushReceiver) {
-        super(store, name);
+    ImapFolderPusher(ImapStore store, String folderName, PushReceiver pushReceiver) {
         this.pushReceiver = pushReceiver;
 
+        folder = new ImapFolder(store, folderName);
         Context context = pushReceiver.getContext();
         TracingPowerManager powerManager = TracingPowerManager.getPowerManager(context);
-        String tag = "ImapFolderPusher " + store.getStoreConfig().toString() + ":" + getName();
+        String tag = "ImapFolderPusher " + store.getStoreConfig().toString() + ":" + folderName;
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, tag);
         wakeLock.setReferenceCounted(false);
     }
@@ -79,13 +81,12 @@ class ImapFolderPusher extends ImapFolder {
             listeningThread = null;
         }
 
-        ImapConnection conn = connection;
-        if (conn != null) {
+        if (folder != null && folder.isOpen()) {
             if (K9MailLib.isDebug()) {
-                Timber.v("Closing connection to stop pushing for %s", getLogId());
+                Timber.v("Closing folder to stop pushing for %s", getLogId());
             }
 
-            conn.close();
+            folder.close();
         } else {
             Timber.w("Attempt to interrupt null connection to stop pushing on folderPusher for %s", getLogId());
         }
@@ -94,6 +95,14 @@ class ImapFolderPusher extends ImapFolder {
     private boolean isUntaggedResponseSupported(ImapResponse response) {
         return (equalsIgnoreCase(response.get(1), "EXISTS") || equalsIgnoreCase(response.get(1), "EXPUNGE") ||
                 equalsIgnoreCase(response.get(1), "FETCH") || equalsIgnoreCase(response.get(0), "VANISHED"));
+    }
+
+    private String getLogId() {
+        return folder.getLogId();
+    }
+
+    String getName() {
+        return folder.getName();
     }
 
     private class PushRunnable implements Runnable, UntaggedHandler {
@@ -131,7 +140,7 @@ class ImapFolderPusher extends ImapFolder {
                         break;
                     }
 
-                    boolean pushPollOnConnect = store.getStoreConfig().isPushPollOnConnect();
+                    boolean pushPollOnConnect = folder.getStore().getStoreConfig().isPushPollOnConnect();
                     if (pushPollOnConnect && (openedNewConnection || needsPoll)) {
                         needsPoll = false;
                         pushReceiver.syncFolder(getName());
@@ -154,7 +163,7 @@ class ImapFolderPusher extends ImapFolder {
 
                         prepareForIdle();
 
-                        ImapConnection conn = connection;
+                        ImapConnection conn = folder.getConnection();
                         setReadTimeoutForIdle(conn);
                         sendIdle(conn);
 
@@ -203,7 +212,7 @@ class ImapFolderPusher extends ImapFolder {
                     Timber.i("Pusher for %s is exiting", getLogId());
                 }
 
-                close();
+                folder.close();
             } catch (Exception me) {
                 Timber.e(me, "Got exception while closing for %s", getLogId());
             } finally {
@@ -219,16 +228,14 @@ class ImapFolderPusher extends ImapFolder {
             pushReceiver.setPushActive(getName(), false);
 
             try {
-                connection.close();
+                folder.close();
             } catch (Exception me) {
                 Timber.e(me, "Got exception while closing for exception for %s", getLogId());
             }
-
-            connection = null;
         }
 
         private long getNewUidNext() throws MessagingException {
-            long newUidNext = uidNext;
+            long newUidNext = folder.getUidNext();
             if (newUidNext != -1L) {
                 return newUidNext;
             }
@@ -237,7 +244,7 @@ class ImapFolderPusher extends ImapFolder {
                 Timber.d("uidNext is -1, using search to find highest UID");
             }
 
-            long highestUid = getHighestUid();
+            long highestUid = folder.getHighestUid();
             if (highestUid == -1L) {
                 return -1L;
             }
@@ -253,7 +260,7 @@ class ImapFolderPusher extends ImapFolder {
 
         private long getStartUid(long oldUidNext, long newUidNext) {
             long startUid = oldUidNext;
-            int displayCount = store.getStoreConfig().getDisplayCount();
+            int displayCount = folder.getStore().getStoreConfig().getDisplayCount();
 
             if (startUid < newUidNext - displayCount) {
                 startUid = newUidNext - displayCount;
@@ -272,11 +279,9 @@ class ImapFolderPusher extends ImapFolder {
         }
 
         private void sendIdle(ImapConnection conn) throws MessagingException, IOException {
-            String tag = conn.sendCommand(Commands.IDLE, false);
-
             try {
                 try {
-                    conn.readStatusResponse(tag, Commands.IDLE, this);
+                    folder.executeSimpleCommand(Commands.IDLE, this);
                 } finally {
                     idleStopper.stopAcceptingDoneContinuation();
                 }
@@ -293,10 +298,10 @@ class ImapFolderPusher extends ImapFolder {
         }
 
         private boolean openConnectionIfNecessary() throws MessagingException {
-            ImapConnection oldConnection = connection;
-            internalOpen(OPEN_MODE_RO, INVALID_UID_VALIDITY, INVALID_HIGHEST_MOD_SEQ);
+            ImapConnection oldConnection = folder.getConnection();
+            folder.open(OPEN_MODE_RO);
 
-            ImapConnection conn = connection;
+            ImapConnection conn = folder.getConnection();
 
             checkConnectionNotNull(conn);
             checkConnectionIdleCapable(conn);
@@ -325,7 +330,7 @@ class ImapFolderPusher extends ImapFolder {
         }
 
         private void setReadTimeoutForIdle(ImapConnection conn) throws SocketException {
-            int idleRefreshTimeout = store.getStoreConfig().getIdleRefreshMinutes() * 60 * 1000;
+            int idleRefreshTimeout = folder.getStore().getStoreConfig().getIdleRefreshMinutes() * 60 * 1000;
             conn.setReadTimeout(idleRefreshTimeout + IDLE_READ_TIMEOUT_INCREMENT);
         }
 
@@ -362,7 +367,7 @@ class ImapFolderPusher extends ImapFolder {
                             Timber.d("Idling %s", getLogId());
                         }
 
-                        idleStopper.startAcceptingDoneContinuation(connection);
+                        idleStopper.startAcceptingDoneContinuation(folder.getConnection());
                         wakeLock.release();
                     }
                 }
