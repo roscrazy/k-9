@@ -382,17 +382,51 @@ class ImapFolderPusher {
         }
 
         private void processStoredUntaggedResponses() {
-            while (true) {
-                List<ImapResponse> untaggedResponses = getAndClearStoredUntaggedResponses();
-                if (untaggedResponses.isEmpty()) {
+            List<ImapResponse> untaggedResponses = getAndClearStoredUntaggedResponses();
+
+            if (K9MailLib.isDebug()) {
+                Timber.i("Processing %d untagged responses from previous commands for %s",
+                        untaggedResponses.size(), getLogId());
+            }
+
+            boolean performSync = false;
+
+            for (int i = 0; i < untaggedResponses.size();i++) {
+                ImapResponse response = untaggedResponses.get(i);
+                int seqNum = -1;
+
+                if (equalsIgnoreCase(response.get(1), "EXPUNGE") || equalsIgnoreCase(response.get(1), "FETCH")) {
+                    seqNum = response.getNumber(0);
+                    if (K9MailLib.isDebug()) {
+                        Timber.d("Got untagged %s for msgseq %d for %s", response.getString(1), seqNum, getLogId());
+                    }
+                } else if (equalsIgnoreCase(response.get(1), "EXISTS")) {
+                    //Check for new messages
+                    if (i == 0 || !equalsIgnoreCase(untaggedResponses.get(i - 1).get(1), "EXPUNGE")) {
+                        performSync = true;
+                    }
+                    if (K9MailLib.isDebug()) {
+                        Timber.d("Got untagged EXISTS for %s", folder.getLogId());
+                    }
+                } else if (equalsIgnoreCase(response.get(0), "VANISHED")) {
+                    performSync = true;
+                    if (K9MailLib.isDebug()) {
+                        String vanishedUidsString = ImapUtility.join(",",
+                                ImapUtility.extractVanishedUids(Collections.singletonList(response)));
+                        Timber.d("Got untagged VANISHED for UIDs %s for %s", vanishedUidsString, folder.getLogId());
+                    }
+                }
+
+                if (seqNum >= getSmallestSeqNum()) {
+                    performSync = true;
+                } else if (seqNum != -1 && K9MailLib.isDebug()) {
+                    Timber.d("Message with seqnum %d for %s is too old", seqNum, getLogId());
+                }
+                if (performSync) {
                     break;
                 }
-
-                if (K9MailLib.isDebug()) {
-                    Timber.i("Processing %d untagged responses from previous commands for %s",
-                            untaggedResponses.size(), getLogId());
-                }
-
+            }
+            if (performSync) {
                 pushReceiver.syncFolder(getName());
             }
         }
@@ -425,6 +459,15 @@ class ImapFolderPusher {
             }
 
             return oldUidNext;
+        }
+    }
+
+    private int getSmallestSeqNum() {
+        int smallestSeqNum = folder.getMessageCount() - folder.getStore().getStoreConfig().getDisplayCount();
+        if (smallestSeqNum > 0) {
+            return smallestSeqNum;
+        } else {
+            return 1;
         }
     }
 
