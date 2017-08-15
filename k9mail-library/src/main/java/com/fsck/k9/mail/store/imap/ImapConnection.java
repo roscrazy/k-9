@@ -611,6 +611,10 @@ public class ImapConnection {
         }
     }
 
+    boolean isQresyncEnabled() {
+        return qresyncEnabled;
+    }
+
     private void retrievePathPrefixIfNecessary() throws IOException, MessagingException {
         if (settings.getPathPrefix() != null) {
             return;
@@ -754,7 +758,7 @@ public class ImapConnection {
     }
 
     public List<ImapResponse> readStatusResponse(String tag, String commandToLog, UntaggedHandler untaggedHandler)
-            throws IOException, NegativeImapResponseException {
+            throws IOException, MessagingException {
         return responseParser.readStatusResponse(tag, commandToLog, getLogId(), untaggedHandler);
     }
 

@@ -2,6 +2,7 @@ package com.fsck.k9.mail.store.imap;
 
 
 import com.fsck.k9.mail.K9MailLib;
+import com.fsck.k9.mail.MessagingException;
 import com.fsck.k9.mail.filter.FixedLengthInputStream;
 import com.fsck.k9.mail.filter.PeekableInputStream;
 
@@ -78,7 +79,7 @@ public class ImapResponseParser {
     }
 
     List<ImapResponse> readStatusResponse(String tag, String commandToLog, String logId,
-            UntaggedHandler untaggedHandler) throws IOException, NegativeImapResponseException {
+            UntaggedHandler untaggedHandler) throws IOException, MessagingException {
 
         List<ImapResponse> responses = new ArrayList<ImapResponse>();
 

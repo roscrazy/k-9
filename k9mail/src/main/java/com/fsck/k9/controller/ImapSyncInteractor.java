@@ -16,7 +16,6 @@ import com.fsck.k9.mail.store.imap.ImapFolder;
 import com.fsck.k9.mail.store.imap.QresyncParamResponse;
 import com.fsck.k9.mailstore.LocalFolder;
 import com.fsck.k9.mailstore.LocalMessage;
-import com.fsck.k9.mailstore.LocalStore;
 import com.fsck.k9.notification.NotificationController;
 import timber.log.Timber;
 
@@ -59,7 +58,8 @@ class ImapSyncInteractor {
                 commandException = e;
             }
 
-            localFolder = getOpenedLocalFolder(account, folderName);
+            Timber.v("SYNC: About to get local folder %s and open it", folderName);
+            localFolder = syncHelper.getOpenedLocalFolder(account, folderName);
             localFolder.updateLastUid();
             imapFolder = getOpenedImapFolder(account, folderName);
 
@@ -113,7 +113,7 @@ class ImapSyncInteractor {
             syncHelper.updateMoreMessages(account, localFolder, imapFolder);
 
             localFolder.setUidValidity(imapFolder.getUidValidity());
-            updateHighestModSeqIfNecessary(localFolder, imapFolder);
+            updateHighestModSeqIfNecessary(account, folderName, localFolder, imapFolder);
 
             int unreadMessageCount = localFolder.getUnreadMessageCount();
             for (MessagingListener l : controller.getListeners()) {
@@ -200,29 +200,15 @@ class ImapSyncInteractor {
         }
     }
 
-    private void updateHighestModSeqIfNecessary(LocalFolder localFolder, ImapFolder imapFolder)
-            throws MessagingException {
-        long cachedHighestModSeq = localFolder.getHighestModSeq();
-        long remoteHighestModSeq = imapFolder.getHighestModSeq();
-
+    private void updateHighestModSeqIfNecessary(Account account, String folderName, LocalFolder localFolder,
+            ImapFolder imapFolder) throws MessagingException {
         if (!imapFolder.supportsModSeq()) {
             localFolder.invalidateHighestModSeq();
         }
-
-        if (remoteHighestModSeq > cachedHighestModSeq) {
-            localFolder.setHighestModSeq(remoteHighestModSeq);
-        }
+        updateHighestModSeq(account, folderName, imapFolder.getHighestModSeq(), controller, syncHelper);
     }
 
-    private LocalFolder getOpenedLocalFolder(Account account, String folderName) throws MessagingException {
-        Timber.v("SYNC: About to get local folder %s and open it", folderName);
-        final LocalStore localStore = account.getLocalStore();
-        LocalFolder localFolder = localStore.getFolder(folderName);
-        localFolder.open(Folder.OPEN_MODE_RW);
-        return localFolder;
-    }
-
-    private ImapFolder getOpenedImapFolder(Account account, String folderName) throws MessagingException {
+    private static ImapFolder getOpenedImapFolder(Account account, String folderName) throws MessagingException {
         Store remoteStore = account.getRemoteStore();
         Timber.v("SYNC: About to get remote IMAP folder %s", folderName);
         Folder remoteFolder = remoteStore.getFolder(folderName);
@@ -230,5 +216,21 @@ class ImapSyncInteractor {
             throw new IllegalArgumentException("A non-IMAP account was provided to ImapSyncInteractor");
         }
         return  (ImapFolder) remoteFolder;
+    }
+
+    static void updateHighestModSeq(Account account, String folderName, long highestModSeq,
+            MessagingController controller, SyncHelper syncHelper) {
+        LocalFolder localFolder = null;
+        try {
+            localFolder = syncHelper.getOpenedLocalFolder(account, folderName);
+            if (highestModSeq > localFolder.getHighestModSeq()) {
+                localFolder.setHighestModSeq(highestModSeq);
+            }
+        } catch (Exception e) {
+            Timber.e(e, "Unable to update local HIGHESTMODSEQ");
+            controller.addErrorMessage(account, null, e);
+        } finally {
+            MessagingController.closeFolder(localFolder);
+        }
     }
 }

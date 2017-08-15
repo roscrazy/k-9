@@ -1,5 +1,6 @@
 package com.fsck.k9.controller;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import android.content.Context;
@@ -7,6 +8,7 @@ import android.content.Context;
 import com.fsck.k9.Account;
 import com.fsck.k9.K9;
 import com.fsck.k9.mail.Folder;
+import com.fsck.k9.mail.Message;
 import com.fsck.k9.mail.PushReceiver;
 import com.fsck.k9.mail.power.TracingPowerManager.TracingWakeLock;
 import com.fsck.k9.mailstore.LocalFolder;
@@ -52,6 +54,21 @@ public class MessagingControllerPushReceiver implements PushReceiver {
         } catch (Exception e) {
             Timber.e(e, "Interrupted while awaiting latch release");
         }
+    }
+
+    @Override
+    public void messageFlagsChanged(String folderName, Message message) {
+        controller.syncMessageFlags(account, folderName, message);
+    }
+
+    @Override
+    public void messagesRemoved(String folderName, List<String> messageUids) {
+        controller.deleteLocalMessages(account, folderName, messageUids);
+    }
+
+    @Override
+    public void highestModSeqChanged(String folderName, long highestModSeq) {
+        ImapSyncInteractor.updateHighestModSeq(account, folderName, highestModSeq, controller, SyncHelper.getInstance());
     }
 
     @Override
