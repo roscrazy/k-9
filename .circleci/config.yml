@@ -1,0 +1,47 @@
+#
+# Build configuration for Circle CI
+#
+version: 2
+
+jobs:
+  build:
+    working_directory: ~/working
+
+
+    docker:
+      - image: circleci/android:api-26-alpha
+
+    environment:
+      # Java options
+      _JAVA_OPTIONS: "-Xmx1024m"
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError" -Dorg.gradle.daemon=false'
+
+    steps:
+      - checkout
+
+      - run:
+          name: Accepts License
+          command: cp -r licenses/. $ANDROID_HOME/licenses
+
+      - run:
+          name: Download Dependencies
+          command: ./gradlew androidDependencies
+
+      - run:
+          name: Assemble Debug
+          command: ./gradlew assembleDebug -Pkotlin.incremental=false -Porg.gradle.parallel=false
+
+      - run:
+          name: Tests Debug
+          command: ./gradlew testDebug -Pkotlin.incremental=false -Porg.gradle.parallel=false
+
+      - run:
+          name: Tests Release
+          command: ./gradlew testRelease -Pkotlin.incremental=false -Porg.gradle.parallel=false
+
+      - store_artifacts:
+          path: app/build/outputs/apk/
+          destination: apks/
+      - store_artifacts:
+          path: app/build/reports/
+          destination: reports/
