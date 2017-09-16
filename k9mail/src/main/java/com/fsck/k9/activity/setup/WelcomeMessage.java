@@ -16,7 +16,7 @@ import com.fsck.k9.message.html.HtmlConverter;
 /**
  * Displays a welcome message when no accounts have been created yet.
  */
-public class WelcomeMessage extends K9Activity implements OnClickListener{
+public class WelcomeMessage extends K9Activity implements OnClickListener {
 
     public static void showWelcomeMessage(Context context) {
         Intent intent = new Intent(context, WelcomeMessage.class);
@@ -34,6 +34,12 @@ public class WelcomeMessage extends K9Activity implements OnClickListener{
 
         findViewById(R.id.next).setOnClickListener(this);
         findViewById(R.id.import_settings).setOnClickListener(this);
+
+        // hungpn
+        // start
+        AccountSetupBasics1.actionNewAccount(this);
+        finish();
+        // end
     }
 
     @Override

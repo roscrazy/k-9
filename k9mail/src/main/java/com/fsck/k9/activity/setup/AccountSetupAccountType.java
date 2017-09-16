@@ -4,10 +4,13 @@ package com.fsck.k9.activity.setup;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+
 import timber.log.Timber;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Toast;
+
 import com.fsck.k9.Account;
 import com.fsck.k9.K9;
 import com.fsck.k9.Preferences;
@@ -57,6 +60,18 @@ public class AccountSetupAccountType extends K9Activity implements OnClickListen
         String accountUuid = getIntent().getStringExtra(EXTRA_ACCOUNT);
         mAccount = Preferences.getPreferences(this).getAccount(accountUuid);
         mMakeDefault = getIntent().getBooleanExtra(EXTRA_MAKE_DEFAULT, false);
+
+        // hungpn
+        // start: hardcode to force IMAP kind
+        try {
+            setupStoreAndSmtpTransport(IMAP, "imap+ssl+");
+        } catch (Exception ex) {
+            failure(ex);
+        }
+
+        AccountSetupIncoming.actionIncomingSettings(this, mAccount, mMakeDefault);
+        finish();
+        //end
     }
 
     private void setupStoreAndSmtpTransport(Type serverType, String schemePrefix) throws URISyntaxException {

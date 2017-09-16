@@ -8,7 +8,10 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.DigitsKeyListener;
+
 import timber.log.Timber;
+
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.*;
@@ -94,29 +97,30 @@ public class AccountSetupIncoming extends K9Activity implements OnClickListener 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d("hung", "onCreate: " + "hung");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.account_setup_incoming);
 
-        mUsernameView = (EditText)findViewById(R.id.account_username);
-        mPasswordView = (EditText)findViewById(R.id.account_password);
-        mClientCertificateSpinner = (ClientCertificateSpinner)findViewById(R.id.account_client_certificate_spinner);
-        mClientCertificateLabelView = (TextView)findViewById(R.id.account_client_certificate_label);
-        mPasswordLabelView = (TextView)findViewById(R.id.account_password_label);
+        mUsernameView = (EditText) findViewById(R.id.account_username);
+        mPasswordView = (EditText) findViewById(R.id.account_password);
+        mClientCertificateSpinner = (ClientCertificateSpinner) findViewById(R.id.account_client_certificate_spinner);
+        mClientCertificateLabelView = (TextView) findViewById(R.id.account_client_certificate_label);
+        mPasswordLabelView = (TextView) findViewById(R.id.account_password_label);
         TextView serverLabelView = (TextView) findViewById(R.id.account_server_label);
-        mServerView = (EditText)findViewById(R.id.account_server);
-        mPortView = (EditText)findViewById(R.id.account_port);
-        mSecurityTypeView = (Spinner)findViewById(R.id.account_security_type);
-        mAuthTypeView = (Spinner)findViewById(R.id.account_auth_type);
-        mImapAutoDetectNamespaceView = (CheckBox)findViewById(R.id.imap_autodetect_namespace);
-        mImapPathPrefixView = (EditText)findViewById(R.id.imap_path_prefix);
-        mWebdavPathPrefixView = (EditText)findViewById(R.id.webdav_path_prefix);
-        mWebdavAuthPathView = (EditText)findViewById(R.id.webdav_auth_path);
-        mWebdavMailboxPathView = (EditText)findViewById(R.id.webdav_mailbox_path);
-        mNextButton = (Button)findViewById(R.id.next);
-        mCompressionMobile = (CheckBox)findViewById(R.id.compression_mobile);
-        mCompressionWifi = (CheckBox)findViewById(R.id.compression_wifi);
-        mCompressionOther = (CheckBox)findViewById(R.id.compression_other);
-        mSubscribedFoldersOnly = (CheckBox)findViewById(R.id.subscribed_folders_only);
+        mServerView = (EditText) findViewById(R.id.account_server);
+        mPortView = (EditText) findViewById(R.id.account_port);
+        mSecurityTypeView = (Spinner) findViewById(R.id.account_security_type);
+        mAuthTypeView = (Spinner) findViewById(R.id.account_auth_type);
+        mImapAutoDetectNamespaceView = (CheckBox) findViewById(R.id.imap_autodetect_namespace);
+        mImapPathPrefixView = (EditText) findViewById(R.id.imap_path_prefix);
+        mWebdavPathPrefixView = (EditText) findViewById(R.id.webdav_path_prefix);
+        mWebdavAuthPathView = (EditText) findViewById(R.id.webdav_auth_path);
+        mWebdavMailboxPathView = (EditText) findViewById(R.id.webdav_mailbox_path);
+        mNextButton = (Button) findViewById(R.id.next);
+        mCompressionMobile = (CheckBox) findViewById(R.id.compression_mobile);
+        mCompressionWifi = (CheckBox) findViewById(R.id.compression_wifi);
+        mCompressionOther = (CheckBox) findViewById(R.id.compression_other);
+        mSubscribedFoldersOnly = (CheckBox) findViewById(R.id.subscribed_folders_only);
 
         mNextButton.setOnClickListener(this);
 
@@ -210,9 +214,9 @@ public class AccountSetupIncoming extends K9Activity implements OnClickListener 
                 }
             } else if (Type.WebDAV == settings.type) {
                 serverLabelView.setText(R.string.account_setup_incoming_webdav_server_label);
-                mConnectionSecurityChoices = new ConnectionSecurity[] {
+                mConnectionSecurityChoices = new ConnectionSecurity[]{
                         ConnectionSecurity.NONE,
-                        ConnectionSecurity.SSL_TLS_REQUIRED };
+                        ConnectionSecurity.SSL_TLS_REQUIRED};
 
                 // Hide the unnecessary fields
                 findViewById(R.id.imap_path_prefix_section).setVisibility(View.GONE);
@@ -286,6 +290,20 @@ public class AccountSetupIncoming extends K9Activity implements OnClickListener 
         } catch (Exception e) {
             failure(e);
         }
+
+        // hung
+        // start: hardcode to force setup IMAP then next to request to server
+        hardCodeSetupIMAP();
+        onNext();
+        finish();
+        // end
+    }
+
+    private void hardCodeSetupIMAP() {
+        mServerView.setText("imap.mail.me.com");
+        mSecurityTypeView.setSelection(2);
+        mPortView.setText("993");
+        // username and password will be set above
     }
 
     /**
@@ -304,7 +322,7 @@ public class AccountSetupIncoming extends K9Activity implements OnClickListener 
         mSecurityTypeView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position,
-                    long id) {
+                                       long id) {
 
                 /*
                  * We keep our own record of the spinner state so we
@@ -327,7 +345,7 @@ public class AccountSetupIncoming extends K9Activity implements OnClickListener 
         mAuthTypeView.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position,
-                    long id) {
+                                       long id) {
                 if (mCurrentAuthTypeViewPosition == position) {
                     return;
                 }
@@ -537,6 +555,18 @@ public class AccountSetupIncoming extends K9Activity implements OnClickListener 
         }
     }
 
+    public void onClick(View v) {
+        try {
+            switch (v.getId()) {
+                case R.id.next:
+                    onNext();
+                    break;
+            }
+        } catch (Exception e) {
+            failure(e);
+        }
+    }
+
     protected void onNext() {
         try {
             ConnectionSecurity connectionSecurity = getSelectedSecurity();
@@ -587,18 +617,6 @@ public class AccountSetupIncoming extends K9Activity implements OnClickListener 
             failure(e);
         }
 
-    }
-
-    public void onClick(View v) {
-        try {
-            switch (v.getId()) {
-            case R.id.next:
-                onNext();
-                break;
-            }
-        } catch (Exception e) {
-            failure(e);
-        }
     }
 
     private void failure(Exception use) {

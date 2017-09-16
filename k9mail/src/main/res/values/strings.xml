@@ -64,12 +64,10 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="account_clear_dlg_instructions_fmt">Local copies of messages in \"<xliff:g id="account">%s</xliff:g>\" will be removed. Account settings will be retained.</string>
 
 
-
     <!-- === App Store-specific strings ======================================================= -->
 
     <string name="import_dialog_error_message">Please install a file manager to continue with this import.</string>
     <string name="open_market">Open Play Store</string>
-
 
 
     <!-- === General strings ================================================================== -->
@@ -1110,7 +1108,7 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="fetching_attachment_dialog_message">Fetching attachment…</string>
 
     <string name="auth_external_error">Unable to authenticate.  The server does not advertise the SASL EXTERNAL capability.  This could be due to a problem with the client certificate (expired, unknown certificate authority) or some other configuration problem.</string>
-    
+
     <!-- === Client certificates specific ================================================================== -->
     <string name="account_setup_basics_client_certificate">Use client certificate</string>
     <string name="client_certificate_spinner_empty">No client certificate</string>
@@ -1233,4 +1231,11 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="mail_list_widget_loading">Loading messages…</string>
     <string name="fetching_folders_failed">Fetching folder list failed</string>
     <string name="messageview_crypto_warning_details">Show Details</string>
+
+    <!--login screen-->
+    <string name="login_title">LOGIN</string>
+    <string name="login_instruction"><![CDATA[Due to Apple policy, you must follow this <a href="https://www.youtube.com/watch?v=mGklj42NzZE">VIDEO</a> or this <a href="https://support.apple.com/kb/ht6186">HELP</a> to enable two-factor authentication and generate a temporary password to login to iCloud over this app]]></string>
+    <string name="screen_login_warning">Super-secure and we respect your privacy. We don\'t store your Apple Id in the app, we store them in Android OS (Android AccountManager)</string>
+    <string name="apple_id">Apple ID</string>
+    <string name="Password">Password</string>
 </resources>
