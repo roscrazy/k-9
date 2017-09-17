@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="appThemeColorBlue">#00b3fe</color>
+    <color name="appThemeColorBlueAlpha">#1100b3fe</color>
+    <color name="appThemeColorBlueAlpha88">#9900b3fe</color>
+    <color name="appThemeColorWhite">@color/white</color>
+    <color name="appThemeColorInverse">#111111</color>
+    <color name="appThemeColorInverseAlpha">#99111111</color>
+
+    <color name="appTextColorBlue">#00b3fe</color>
+    <color name="appTextColorInverse">@color/white</color>
+    <color name="appTextColorBlueDark">#0e5d7e</color>
+    <color name="appTextColorDark">#111111</color>
+
+
+    <color name="apptheme_secondary_color">#8447a9</color>
+
+    <color name="status_bar_color">#004aa7</color>
+    <color name="white">#ffffff</color>
+    <color name="selected_color">#19297def</color>
+
+    
+</resources>
