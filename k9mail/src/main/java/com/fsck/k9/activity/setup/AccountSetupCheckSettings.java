@@ -11,7 +11,9 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+
 import timber.log.Timber;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ProgressBar;
@@ -30,6 +32,7 @@ import com.fsck.k9.mail.Transport;
 import com.fsck.k9.mail.TransportProvider;
 import com.fsck.k9.mail.store.webdav.WebDavStore;
 import com.fsck.k9.mail.filter.Hex;
+
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -42,18 +45,18 @@ import java.util.Locale;
 /**
  * Checks the given settings to make sure that they can be used to send and
  * receive mail.
- * 
+ * <p>
  * XXX NOTE: The manifest for this app has it ignore config changes, because
  * it doesn't correctly deal with restarting while its thread is running.
  */
 public class AccountSetupCheckSettings extends K9Activity implements OnClickListener,
-        ConfirmationDialogFragmentListener{
+        ConfirmationDialogFragmentListener {
 
     public static final int ACTIVITY_REQUEST_CODE = 1;
 
     private static final String EXTRA_ACCOUNT = "account";
 
-    private static final String EXTRA_CHECK_DIRECTION ="checkDirection";
+    private static final String EXTRA_CHECK_DIRECTION = "checkDirection";
 
     public enum CheckDirection {
         INCOMING,
@@ -75,7 +78,7 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
     private boolean mDestroyed;
 
     public static void actionCheckSettings(Activity context, Account account,
-            CheckDirection direction) {
+                                           CheckDirection direction) {
         Intent i = new Intent(context, AccountSetupCheckSettings.class);
         i.putExtra(EXTRA_ACCOUNT, account.getUuid());
         i.putExtra(EXTRA_CHECK_DIRECTION, direction);
@@ -86,8 +89,8 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.account_setup_check_settings);
-        mMessageView = (TextView)findViewById(R.id.message);
-        mProgressBar = (ProgressBar)findViewById(R.id.progress);
+        mMessageView = (TextView) findViewById(R.id.message);
+        mProgressBar = (ProgressBar) findViewById(R.id.progress);
         findViewById(R.id.cancel).setOnClickListener(this);
 
         setMessage(R.string.account_setup_check_settings_retr_info_msg);
@@ -171,7 +174,7 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
                     //  by a subjectDN not matching the server even though a
                     //  SubjectAltName matches)
                     try {
-                        final Collection < List<? >> subjectAlternativeNames = chain[i].getSubjectAlternativeNames();
+                        final Collection<List<?>> subjectAlternativeNames = chain[i].getSubjectAlternativeNames();
                         if (subjectAlternativeNames != null) {
                             // The list of SubjectAltNames may be very long
                             //TODO: localize this string
@@ -183,37 +186,37 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
                             String transportURIHost = (Uri.parse(mAccount.getTransportUri())).getHost();
 
                             for (List<?> subjectAlternativeName : subjectAlternativeNames) {
-                                Integer type = (Integer)subjectAlternativeName.get(0);
+                                Integer type = (Integer) subjectAlternativeName.get(0);
                                 Object value = subjectAlternativeName.get(1);
                                 String name;
                                 switch (type.intValue()) {
-                                case 0:
-                                    Timber.w("SubjectAltName of type OtherName not supported.");
-                                    continue;
-                                case 1: // RFC822Name
-                                    name = (String)value;
-                                    break;
-                                case 2:  // DNSName
-                                    name = (String)value;
-                                    break;
-                                case 3:
-                                    Timber.w("unsupported SubjectAltName of type x400Address");
-                                    continue;
-                                case 4:
-                                    Timber.w("unsupported SubjectAltName of type directoryName");
-                                    continue;
-                                case 5:
-                                    Timber.w("unsupported SubjectAltName of type ediPartyName");
-                                    continue;
-                                case 6:  // Uri
-                                    name = (String)value;
-                                    break;
-                                case 7: // ip-address
-                                    name = (String)value;
-                                    break;
-                                default:
-                                    Timber.w("unsupported SubjectAltName of unknown type");
-                                    continue;
+                                    case 0:
+                                        Timber.w("SubjectAltName of type OtherName not supported.");
+                                        continue;
+                                    case 1: // RFC822Name
+                                        name = (String) value;
+                                        break;
+                                    case 2:  // DNSName
+                                        name = (String) value;
+                                        break;
+                                    case 3:
+                                        Timber.w("unsupported SubjectAltName of type x400Address");
+                                        continue;
+                                    case 4:
+                                        Timber.w("unsupported SubjectAltName of type directoryName");
+                                        continue;
+                                    case 5:
+                                        Timber.w("unsupported SubjectAltName of type ediPartyName");
+                                        continue;
+                                    case 6:  // Uri
+                                        name = (String) value;
+                                        break;
+                                    case 7: // ip-address
+                                        name = (String) value;
+                                        break;
+                                    default:
+                                        Timber.w("unsupported SubjectAltName of unknown type");
+                                        continue;
                                 }
 
                                 // if some of the SubjectAltNames match the store or transport -host,
@@ -222,8 +225,8 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
                                     //TODO: localize this string
                                     altNamesText.append("Subject(alt): ").append(name).append(",...\n");
                                 } else if (name.startsWith("*.") && (
-                                            storeURIHost.endsWith(name.substring(2)) ||
-                                            transportURIHost.endsWith(name.substring(2)))) {
+                                        storeURIHost.endsWith(name.substring(2)) ||
+                                                transportURIHost.endsWith(name.substring(2)))) {
                                     //TODO: localize this string
                                     altNamesText.append("Subject(alt): ").append(name).append(",...\n");
                                 }
@@ -250,27 +253,27 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
                 // TODO: refactor with DialogFragment.
                 // This is difficult because we need to pass through chain[0] for onClick()
                 new AlertDialog.Builder(AccountSetupCheckSettings.this)
-                .setTitle(getString(R.string.account_setup_failed_dlg_invalid_certificate_title))
-                //.setMessage(getString(R.string.account_setup_failed_dlg_invalid_certificate)
-                .setMessage(getString(msgResId, exMessage)
-                            + " " + chainInfo.toString()
-                           )
-                .setCancelable(true)
-                .setPositiveButton(
-                    getString(R.string.account_setup_failed_dlg_invalid_certificate_accept),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        acceptCertificate(chain[0]);
-                    }
-                })
-                .setNegativeButton(
-                    getString(R.string.account_setup_failed_dlg_invalid_certificate_reject),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                })
-                .show();
+                        .setTitle(getString(R.string.account_setup_failed_dlg_invalid_certificate_title))
+                        //.setMessage(getString(R.string.account_setup_failed_dlg_invalid_certificate)
+                        .setMessage(getString(msgResId, exMessage)
+                                + " " + chainInfo.toString()
+                        )
+                        .setCancelable(true)
+                        .setPositiveButton(
+                                getString(R.string.account_setup_failed_dlg_invalid_certificate_accept),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        acceptCertificate(chain[0]);
+                                    }
+                                })
+                        .setNegativeButton(
+                                getString(R.string.account_setup_failed_dlg_invalid_certificate_reject),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                    }
+                                })
+                        .show();
             }
         });
     }
@@ -278,7 +281,7 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
     /**
      * Permanently accepts a certificate for the INCOMING or OUTGOING direction
      * by adding it to the local key store.
-     * 
+     *
      * @param certificate
      */
     private void acceptCertificate(X509Certificate certificate) {
@@ -308,9 +311,9 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
 
     public void onClick(View v) {
         switch (v.getId()) {
-        case R.id.cancel:
-            onCancel();
-            break;
+            case R.id.cancel:
+                onCancel();
+                break;
         }
     }
 
@@ -332,10 +335,10 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
         switch (dialogId) {
             case R.id.dialog_account_setup_error: {
                 fragment = ConfirmationDialogFragment.newInstance(dialogId,
-                        getString(R.string.account_setup_failed_dlg_title),
+                        getString(R.string.account_setup_failed_dlg_title_1),
                         customMessage,
-                        getString(R.string.account_setup_failed_dlg_edit_details_action),
-                        getString(R.string.account_setup_failed_dlg_continue_action)
+                        null,
+                        getString(R.string.account_setup_failed_dlg_ok_action)
                 );
                 break;
             }
@@ -386,12 +389,17 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
 
     private String errorMessageForCertificateException(CertificateValidationException e) {
         switch (e.getReason()) {
-            case Expired: return getString(R.string.client_certificate_expired, e.getAlias(), e.getMessage());
-            case MissingCapability: return getString(R.string.auth_external_error);
-            case RetrievalFailure: return getString(R.string.client_certificate_retrieval_failure, e.getAlias());
-            case UseMessage: return e.getMessage();
+            case Expired:
+                return getString(R.string.client_certificate_expired, e.getAlias(), e.getMessage());
+            case MissingCapability:
+                return getString(R.string.auth_external_error);
+            case RetrievalFailure:
+                return getString(R.string.client_certificate_retrieval_failure, e.getAlias());
+            case UseMessage:
+                return e.getMessage();
             case Unknown:
-            default: return "";
+            default:
+                return "";
         }
     }
 
@@ -426,6 +434,10 @@ public class AccountSetupCheckSettings extends K9Activity implements OnClickList
                 if (cancelled()) {
                     return null;
                 }
+
+                // send BR intent to finish LoginActivity
+                Intent intent = new Intent("finish_activity");
+                sendBroadcast(intent);
 
                 setResult(RESULT_OK);
                 finish();

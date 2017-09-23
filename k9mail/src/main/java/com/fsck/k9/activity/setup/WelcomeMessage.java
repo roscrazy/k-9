@@ -37,7 +37,7 @@ public class WelcomeMessage extends K9Activity implements OnClickListener {
 
         // hungpn
         // start
-        AccountSetupBasics1.actionNewAccount(this);
+        AccountSetupBasics.actionNewAccount(this);
         finish();
         // end
     }

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:background="@color/white"
-              android:orientation="vertical"
-              android:weightSum="3">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:weightSum="3">
 
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@null"/>
+        android:background="@null" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,8 +25,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/login_title"
-            android:textColor="@color/light_cyan"
-            android:textSize="@dimen/text_size_title"/>
+            android:textColor="@color/appThemeColorBlue"
+            android:textSize="@dimen/text_size_title" />
 
         <TextView
             android:id="@+id/tv_login_instruction"
@@ -35,7 +35,7 @@
             android:layout_marginTop="@dimen/margin_large"
             android:gravity="center"
             android:textColor="@color/red"
-            android:textSize="@dimen/text_size_normal"/>
+            android:textSize="@dimen/text_size_normal" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -47,7 +47,7 @@
                 android:layout_height="30dp"
                 android:layout_alignParentLeft="true"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_username"/>
+                android:src="@drawable/ic_login_user_name" />
 
             <EditText
                 android:id="@+id/edt_apple_id"
@@ -59,7 +59,7 @@
                 android:minHeight="30dp"
                 android:singleLine="true"
                 android:text="mikedev1988"
-                android:textSize="@dimen/text_size_normal"/>
+                android:textSize="@dimen/text_size_normal" />
 
             <View
                 android:id="@+id/view_id_line"
@@ -68,7 +68,7 @@
                 android:layout_below="@id/iv_apple_id"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="2dp"
-                android:background="@color/light_cyan"/>
+                android:background="@color/appThemeColorBlue" />
         </RelativeLayout>
 
         <RelativeLayout
@@ -82,7 +82,7 @@
                 android:layout_height="30dp"
                 android:layout_alignParentLeft="true"
                 android:scaleType="centerInside"
-                android:src="@drawable/ic_password"/>
+                android:src="@drawable/ic_login_user_pw" />
 
             <EditText
                 android:id="@+id/edt_password"
@@ -95,7 +95,7 @@
                 android:minHeight="30dp"
                 android:singleLine="true"
                 android:text="oskyhppmfnghpoqg"
-                android:textSize="@dimen/text_size_normal"/>
+                android:textSize="@dimen/text_size_normal" />
 
             <View
                 android:id="@+id/view_password_line"
@@ -104,15 +104,15 @@
                 android:layout_below="@id/iv_password"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="2dp"
-                android:background="@color/gray"/>
+                android:background="@color/appThemeColorInverseAlpha" />
         </RelativeLayout>
 
         <Button
             android:id="@+id/btn_next"
+            style="@style/DavView.CtaButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_normal"
-            android:background="@color/light_cyan"/>
+            android:layout_marginTop="@dimen/margin_normal" />
 
         <TextView
             android:id="@+id/tv_login_warning"
@@ -120,8 +120,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_large"
             android:gravity="center"
-            android:textColor="@color/gray"
-            android:textSize="@dimen/text_size_normal"/>
+            android:textColor="@color/appThemeColorInverseAlpha"
+            android:textSize="@dimen/text_size_normal" />
 
     </LinearLayout>
 </LinearLayout>

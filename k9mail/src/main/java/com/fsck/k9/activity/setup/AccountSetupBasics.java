@@ -2,22 +2,20 @@
 package com.fsck.k9.activity.setup;
 
 
-import java.io.Serializable;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Locale;
-
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.Html;
 import android.text.InputType;
 import android.text.TextWatcher;
-import timber.log.Timber;
+import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -25,12 +23,14 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.fsck.k9.Account;
 import com.fsck.k9.EmailAddressValidator;
 import com.fsck.k9.K9;
 import com.fsck.k9.Preferences;
 import com.fsck.k9.R;
+import com.fsck.k9.account.AccountCreator;
 import com.fsck.k9.activity.K9Activity;
 import com.fsck.k9.activity.setup.AccountSetupCheckSettings.CheckDirection;
 import com.fsck.k9.helper.UrlEncodingHelper;
@@ -40,9 +40,15 @@ import com.fsck.k9.mail.ConnectionSecurity;
 import com.fsck.k9.mail.ServerSettings;
 import com.fsck.k9.mail.Transport;
 import com.fsck.k9.mail.store.RemoteStore;
-import com.fsck.k9.account.AccountCreator;
 import com.fsck.k9.view.ClientCertificateSpinner;
 import com.fsck.k9.view.ClientCertificateSpinner.OnClientCertificateChangedListener;
+
+import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
+
+import timber.log.Timber;
 
 /**
  * Prompts the user for the email address and password.
@@ -52,7 +58,8 @@ import com.fsck.k9.view.ClientCertificateSpinner.OnClientCertificateChangedListe
  * AccountSetupAccountType activity.
  */
 public class AccountSetupBasics extends K9Activity
-    implements OnClickListener, TextWatcher, OnCheckedChangeListener, OnClientCertificateChangedListener {
+        implements View.OnFocusChangeListener, OnClickListener, TextWatcher, OnCheckedChangeListener, OnClientCertificateChangedListener {
+
     private final static String EXTRA_ACCOUNT = "com.fsck.k9.AccountSetupBasics.account";
     private final static int DIALOG_NOTE = 1;
     private final static String STATE_KEY_PROVIDER =
@@ -73,6 +80,9 @@ public class AccountSetupBasics extends K9Activity
     private boolean mCheckedIncoming = false;
     private CheckBox mShowPasswordCheckBox;
 
+    private View mIdLine;
+    private View mPasswordLine;
+
     public static void actionNewAccount(Context context) {
         Intent i = new Intent(context, AccountSetupBasics.class);
         context.startActivity(i);
@@ -81,16 +91,75 @@ public class AccountSetupBasics extends K9Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.account_setup_basics);
-        mEmailView = (EditText)findViewById(R.id.account_email);
-        mPasswordView = (EditText)findViewById(R.id.account_password);
-        mClientCertificateCheckBox = (CheckBox)findViewById(R.id.account_client_certificate);
-        mClientCertificateSpinner = (ClientCertificateSpinner)findViewById(R.id.account_client_certificate_spinner);
-        mNextButton = (Button)findViewById(R.id.next);
-        mManualSetupButton = (Button)findViewById(R.id.manual_setup);
-        mShowPasswordCheckBox = (CheckBox) findViewById(R.id.show_password);
+        setContentView(R.layout.login_activity);
+        mEmailView = (EditText) findViewById(R.id.edt_apple_id);
+        mPasswordView = (EditText) findViewById(R.id.edt_password);
+        mNextButton = (Button) findViewById(R.id.btn_next);
         mNextButton.setOnClickListener(this);
-        mManualSetupButton.setOnClickListener(this);
+        mIdLine = findViewById(R.id.view_id_line);
+        mPasswordLine = findViewById(R.id.view_password_line);
+
+        TextView tvLoginInstruction = (TextView) findViewById(R.id.tv_login_instruction);
+        tvLoginInstruction.setText(Html.fromHtml(getResources().getString(R.string.login_instruction)));
+        tvLoginInstruction.setMovementMethod(LinkMovementMethod.getInstance());
+
+        TextView tvLoginWarning = (TextView) findViewById(R.id.tv_login_warning);
+        tvLoginWarning.setText(Html.fromHtml(getResources().getString(R.string.screen_login_warning)));
+        tvLoginWarning.setMovementMethod(LinkMovementMethod.getInstance());
+
+        EditText edtAppleId = (EditText) findViewById(R.id.edt_apple_id);
+        edtAppleId.setOnFocusChangeListener(this);
+        EditText edtPassword = (EditText) findViewById(R.id.edt_password);
+        edtPassword.setOnFocusChangeListener(this);
+
+        /*mClientCertificateCheckBox = (CheckBox) findViewById(R.id.account_client_certificate);
+        mClientCertificateSpinner = (ClientCertificateSpinner) findViewById(R.id.account_client_certificate_spinner);
+        mManualSetupButton = (Button) findViewById(R.id.manual_setup);
+        mShowPasswordCheckBox = (CheckBox) findViewById(R.id.show_password);*/
+
+        // temp
+        mClientCertificateCheckBox = new CheckBox(this);
+        mClientCertificateSpinner = new ClientCertificateSpinner(this, null);
+        mManualSetupButton = new Button(this);
+        mShowPasswordCheckBox = new CheckBox(this);
+
+        // register BR
+        registerReceiver(brFinishActivity, new IntentFilter("finish_activity"));
+    }
+
+    private BroadcastReceiver brFinishActivity = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context arg0, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals("finish_activity")) {
+                finish();
+            }
+        }
+    };
+
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        switch (v.getId()) {
+            case R.id.edt_apple_id:
+                if (hasFocus) {
+                    mIdLine.setBackgroundResource(R.color.appThemeColorBlue);
+                    mPasswordLine.setBackgroundResource(R.color.appThemeColorInverseAlpha);
+                } else {
+                    mIdLine.setBackgroundResource(R.color.appThemeColorInverseAlpha);
+                    mPasswordLine.setBackgroundResource(R.color.appThemeColorBlue);
+                }
+                break;
+            case R.id.edt_password:
+                if (hasFocus) {
+                    mIdLine.setBackgroundResource(R.color.appThemeColorInverseAlpha);
+                    mPasswordLine.setBackgroundResource(R.color.appThemeColorBlue);
+                } else {
+                    mIdLine.setBackgroundResource(R.color.appThemeColorBlue);
+                    mPasswordLine.setBackgroundResource(R.color.appThemeColorInverseAlpha);
+                }
+                break;
+        }
     }
 
     private void initializeViewListeners() {
@@ -104,7 +173,6 @@ public class AccountSetupBasics extends K9Activity
                 showPassword(isChecked);
             }
         });
-
     }
 
     @Override
@@ -214,8 +282,7 @@ public class AccountSetupBasics extends K9Activity
 
         boolean valid = Utility.requiredFieldValid(mEmailView)
                 && ((!clientCertificateChecked && Utility.requiredFieldValid(mPasswordView))
-                        || (clientCertificateChecked && clientCertificateAlias != null))
-                && mEmailValidator.isValidAddressOnly(email);
+                || (clientCertificateChecked && clientCertificateAlias != null));
 
         mNextButton.setEnabled(valid);
         mManualSetupButton.setEnabled(valid);
@@ -255,18 +322,18 @@ public class AccountSetupBasics extends K9Activity
         if (id == DIALOG_NOTE) {
             if (mProvider != null && mProvider.note != null) {
                 return new AlertDialog.Builder(this)
-                       .setMessage(mProvider.note)
-                       .setPositiveButton(
-                           getString(R.string.okay_action),
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        finishAutoSetup();
-                    }
-                })
-                       .setNegativeButton(
-                           getString(R.string.cancel_action),
-                           null)
-                       .create();
+                        .setMessage(mProvider.note)
+                        .setPositiveButton(
+                                getString(R.string.okay_action),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finishAutoSetup();
+                                    }
+                                })
+                        .setNegativeButton(
+                                getString(R.string.cancel_action),
+                                null)
+                        .create();
             }
         }
         return null;
@@ -302,13 +369,13 @@ public class AccountSetupBasics extends K9Activity
                 outgoingUsername = outgoingUsername.replaceAll("\\$user", userEnc);
                 outgoingUsername = outgoingUsername.replaceAll("\\$domain", domain);
                 outgoingUri = new URI(outgoingUriTemplate.getScheme(), outgoingUsername + ":"
-                                      + passwordEnc, outgoingUriTemplate.getHost(), outgoingUriTemplate.getPort(), null,
-                                      null, null);
+                        + passwordEnc, outgoingUriTemplate.getHost(), outgoingUriTemplate.getPort(), null,
+                        null, null);
 
             } else {
                 outgoingUri = new URI(outgoingUriTemplate.getScheme(),
-                                      null, outgoingUriTemplate.getHost(), outgoingUriTemplate.getPort(), null,
-                                      null, null);
+                        null, outgoingUriTemplate.getHost(), outgoingUriTemplate.getPort(), null,
+                        null, null);
 
 
             }
@@ -420,7 +487,7 @@ public class AccountSetupBasics extends K9Activity
 
         AccountSetupAccountType.actionSelectAccountType(this, mAccount, false);
 
-        finish();
+        //finish();
     }
 
     private void setupFolderNames(String domain) {
@@ -440,18 +507,22 @@ public class AccountSetupBasics extends K9Activity
 
     public void onClick(View v) {
         switch (v.getId()) {
-        case R.id.next:
-            onNext();
-            break;
-        case R.id.manual_setup:
-            onManualSetup();
-            break;
+            case R.id.next:
+                onNext();
+                break;
+            case R.id.manual_setup:
+                onManualSetup();
+                break;
+            case R.id.btn_next:
+                onNext();
+                break;
         }
     }
 
     /**
      * Attempts to get the given attribute as a String resource first, and if it fails
      * returns the attribute as a simple String value.
+     *
      * @param xml
      * @param name
      * @return
@@ -480,18 +551,18 @@ public class AccountSetupBasics extends K9Activity
                     provider.domain = getXmlAttribute(xml, "domain");
                     provider.note = getXmlAttribute(xml, "note");
                 } else if (xmlEventType == XmlResourceParser.START_TAG
-                           && "incoming".equals(xml.getName())
-                           && provider != null) {
+                        && "incoming".equals(xml.getName())
+                        && provider != null) {
                     provider.incomingUriTemplate = new URI(getXmlAttribute(xml, "uri"));
                     provider.incomingUsernameTemplate = getXmlAttribute(xml, "username");
                 } else if (xmlEventType == XmlResourceParser.START_TAG
-                           && "outgoing".equals(xml.getName())
-                           && provider != null) {
+                        && "outgoing".equals(xml.getName())
+                        && provider != null) {
                     provider.outgoingUriTemplate = new URI(getXmlAttribute(xml, "uri"));
                     provider.outgoingUsernameTemplate = getXmlAttribute(xml, "username");
                 } else if (xmlEventType == XmlResourceParser.END_TAG
-                           && "provider".equals(xml.getName())
-                           && provider != null) {
+                        && "provider".equals(xml.getName())
+                        && provider != null) {
                     return provider;
                 }
             }

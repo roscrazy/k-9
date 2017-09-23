@@ -372,7 +372,7 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="account_setup_basics_show_password">Show password</string>
     <string name="account_setup_basics_manual_setup_action">Manual setup</string>
 
-    <string name="account_setup_check_settings_title"/>
+    <string name="account_setup_check_settings_title" />
     <string name="account_setup_check_settings_retr_info_msg">Retrieving account information\u2026</string>
     <string name="account_setup_check_settings_check_incoming_msg">Checking incoming server settings\u2026</string>
     <string name="account_setup_check_settings_check_outgoing_msg">Checking outgoing server settings\u2026</string>
@@ -520,6 +520,8 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="account_setup_failed_dlg_server_message_fmt">Cannot connect to server.\n(<xliff:g id="error">%s</xliff:g>)</string>
     <string name="account_setup_failed_dlg_edit_details_action">Edit details</string>
     <string name="account_setup_failed_dlg_continue_action">Continue</string>
+    <string name="account_setup_failed_dlg_ok_action">OK</string>
+    <string name="account_setup_failed_dlg_title_1">ERROR</string>
 
     <string name="account_settings_push_advanced_title">Advanced</string>
     <string name="account_settings_title_fmt">Account settings</string>
