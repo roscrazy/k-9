@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <style name="DavDialog" parent="@android:style/Theme.Dialog">
+        <item name="android:windowBackground">@color/appThemeColorBlueAlpha88</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+    </style>
+
+
     <style name="DavView"></style>
 
     <style name="DavView.CtaButton" parent="DavView">

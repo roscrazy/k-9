@@ -589,9 +589,18 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         attachmentPresenter.onSaveInstanceState(outState);
     }
 
+//    @Override
+//    public Object onRetainNonConfigurationInstance() {
+//        if (currentMessageBuilder != null) {
+//            currentMessageBuilder.detachCallback();
+//        }
+//        return currentMessageBuilder;
+//    }
+
+
     @Override
-    public Object onRetainNonConfigurationInstance() {
-        if (currentMessageBuilder != null) {
+    public Object onRetainCustomNonConfigurationInstance() {
+                if (currentMessageBuilder != null) {
             currentMessageBuilder.detachCallback();
         }
         return currentMessageBuilder;

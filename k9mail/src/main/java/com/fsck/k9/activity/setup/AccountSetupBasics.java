@@ -24,6 +24,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fsck.k9.Account;
 import com.fsck.k9.EmailAddressValidator;
@@ -71,7 +72,7 @@ public class AccountSetupBasics extends K9Activity
     private EditText mPasswordView;
     private CheckBox mClientCertificateCheckBox;
     private ClientCertificateSpinner mClientCertificateSpinner;
-    private Button mNextButton;
+    private View mNextButton;
     private Button mManualSetupButton;
     private Account mAccount;
     private Provider mProvider;
@@ -91,10 +92,12 @@ public class AccountSetupBasics extends K9Activity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Toast.makeText(this, "What is the hell", Toast.LENGTH_LONG).show();
         setContentView(R.layout.login_activity);
         mEmailView = (EditText) findViewById(R.id.edt_apple_id);
         mPasswordView = (EditText) findViewById(R.id.edt_password);
-        mNextButton = (Button) findViewById(R.id.btn_next);
+        mNextButton = findViewById(R.id.btn_next);
         mNextButton.setOnClickListener(this);
         mIdLine = findViewById(R.id.view_id_line);
         mPasswordLine = findViewById(R.id.view_password_line);
@@ -125,6 +128,12 @@ public class AccountSetupBasics extends K9Activity
 
         // register BR
         registerReceiver(brFinishActivity, new IntentFilter("finish_activity"));
+    }
+
+
+    @Override
+    protected boolean shouldSetTheme() {
+        return false;
     }
 
     private BroadcastReceiver brFinishActivity = new BroadcastReceiver() {
@@ -291,7 +300,7 @@ public class AccountSetupBasics extends K9Activity
          * TODO this can probably be done with a stateful drawable. Check into it.
          * android:state_enabled
          */
-        Utility.setCompoundDrawablesAlpha(mNextButton, mNextButton.isEnabled() ? 255 : 128);
+        //Utility.setCompoundDrawablesAlpha(mNextButton, mNextButton.isEnabled() ? 255 : 128);
     }
 
     private String getOwnerName() {

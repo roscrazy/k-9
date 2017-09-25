@@ -1,14 +1,14 @@
 package com.fsck.k9.activity;
 
 
+import com.fsck.k9.K9;
+import com.fsck.k9.activity.misc.SwipeGestureDetector;
+import com.fsck.k9.activity.misc.SwipeGestureDetector.OnSwipeGestureListener;
+
 import android.app.Activity;
 import android.content.res.TypedArray;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
-
-import com.fsck.k9.K9;
-import com.fsck.k9.activity.misc.SwipeGestureDetector;
-import com.fsck.k9.activity.misc.SwipeGestureDetector.OnSwipeGestureListener;
 
 
 /**
@@ -21,14 +21,13 @@ public class K9ActivityCommon {
     /**
      * Creates a new instance of {@link K9ActivityCommon} bound to the specified activity.
      *
-     * @param activity
-     *         The {@link Activity} the returned {@code K9ActivityCommon} instance will be bound to.
-     *
+     * @param activity The {@link Activity} the returned {@code K9ActivityCommon} instance will be
+     *                 bound to.
      * @return The {@link K9ActivityCommon} instance that will provide the base functionality of the
-     *         "K9" activities.
+     * "K9" activities.
      */
-    public static K9ActivityCommon newInstance(Activity activity) {
-        return new K9ActivityCommon(activity);
+    public static K9ActivityCommon newInstance(Activity activity, boolean setTheme) {
+        return new K9ActivityCommon(activity, setTheme);
     }
 
 
@@ -47,9 +46,9 @@ public class K9ActivityCommon {
     private GestureDetector mGestureDetector;
 
 
-    private K9ActivityCommon(Activity activity) {
+    private K9ActivityCommon(Activity activity, boolean setTheme) {
         mActivity = activity;
-        mActivity.setTheme(K9.getK9ThemeResourceId());
+        if (setTheme) mActivity.setTheme(K9.getK9ThemeResourceId());
     }
 
     /**
@@ -68,7 +67,7 @@ public class K9ActivityCommon {
      */
     public int getThemeBackgroundColor() {
         TypedArray array = mActivity.getTheme().obtainStyledAttributes(
-                new int[] { android.R.attr.colorBackground });
+                new int[]{android.R.attr.colorBackground});
 
         int backgroundColor = array.getColor(0, 0xFF00FF);
 
@@ -80,9 +79,9 @@ public class K9ActivityCommon {
     /**
      * Call this if you wish to use the swipe gesture detector.
      *
-     * @param listener
-     *         A listener that will be notified if a left to right or right to left swipe has been
-     *         detected.
+     * @param listener A listener that will be notified if a left to right or right to left swipe
+     *                 has been
+     *                 detected.
      */
     public void setupGestureDetector(OnSwipeGestureListener listener) {
         mGestureDetector = new GestureDetector(mActivity,

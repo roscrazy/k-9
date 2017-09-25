@@ -18,7 +18,7 @@ public abstract class K9ListActivity extends ListActivity implements K9ActivityM
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        mBase = K9ActivityCommon.newInstance(this);
+        mBase = K9ActivityCommon.newInstance(this, true);
         super.onCreate(savedInstanceState);
     }
 
